@@ -40,19 +40,19 @@ T = [0 0.5]; % (s)
 
 % Plot results
 % speed
-subplot(4,1,1)
+subplot(5,1,1)
 plot(t,z(:,1))
 xlabel('t(s)');
 ylabel('v(m/s)');
 
 % position
-subplot(4,1,2)
+subplot(5,1,2)
 plot(t,z(:,2))
 xlabel('t(s)');
 ylabel('x(m)');
 
 %Lambda
-subplot(4,1,3)
+subplot(5,1,3)
 plot(t,z(:,3))
 xlabel('t(s)');
 ylabel('Flux Linkage(Wb-t)');
@@ -64,10 +64,21 @@ i = (lambda.*x/val.k);     % Create current variable (A)
 fe = ((val.k*i.^2)/(2*x.^2));  % Electrical force
 
 %Electrical force
-subplot(4,1,4)
+subplot(5,1,4)
 plot(t,fe)
 xlabel('t(s)');
 ylabel('Electrical force(N)');
+
+%Solve for ef. ef = Vs-Vr
+Vs = zeros(139,1);  % Create empty array of zeros
+Vs(11:139) = 5;     % Make Vs = 5 at t > 2
+ef = Vs - val.r.*i;     % solve for ef (Back emf)
+
+%ef
+subplot(5,1,5)
+plot(t,ef)
+xlabel('t(s)');
+ylabel('Back emf(V)');
 
 % function of the system dynamic model
 function dz = G_sys(t,z,u,val)
