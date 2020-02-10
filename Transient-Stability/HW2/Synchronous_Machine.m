@@ -62,7 +62,7 @@ end
 
 
 %plot the results
-num_plots = 5 % The number of plots
+num_plots = 6 % The number of plots
 
 
 % voltage
@@ -76,7 +76,33 @@ ylim([-30000 30000]);
 subplot(num_plots, 1, 2)
 plot(t,y(:,1), t,y(:,2),t,y(:,3))
 xlabel('t(s)');
-ylabel('Current(A)');
+ylabel('I_{abc} (A)');
+
+% current
+subplot(num_plots, 1, 3)
+plot(t,y(:,7))
+xlabel('t(s)');
+ylabel('Field Winding Current');
+
+% speed
+subplot(num_plots, 1, 4)
+plot(t,y(:,8))
+xlabel('t(s)');
+ylabel('Rotor Speed');
+
+% current
+subplot(num_plots, 1, 5)
+plot(t,y(:,9))
+xlabel('t(s)');
+ylabel('Te');
+
+
+%current
+subplot(num_plots, 1, 6)
+plot(t,y(:,10))
+xlabel('t(s)');
+ylabel('Power (Watts)');
+
 
 function [dz y] = G_sys(t,z,VAL)
     % Extract state variables
@@ -169,7 +195,5 @@ function [dz y] = G_sys(t,z,VAL)
     
     %return the 4 flux linkages!
     dz = [dlambda_as; dlambda_bs; dlambda_cs; dlambda_fd; dwr; dtheta];
-    y = [Ias; Ibs; Ics; Vas; Vbs; Vcs; Ifd; Te; Pe];
+    y = [Ias; Ibs; Ics; Vas; Vbs; Vcs; Ifd; wr; Te; Pe];
 end
-
-
