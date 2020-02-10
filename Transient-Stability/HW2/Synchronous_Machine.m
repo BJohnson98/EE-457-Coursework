@@ -62,7 +62,7 @@ end
 
 
 %plot the results
-num_plots = 6 % The number of plots
+num_plots = 6; % The number of plots
 
 
 % voltage
@@ -84,13 +84,13 @@ plot(t,y(:,7))
 xlabel('t(s)');
 ylabel('Field Winding Current');
 
-% speed
+% Speed (Rad/s)
 subplot(num_plots, 1, 4)
-plot(t,y(:,8))
+plot(t,z(:,5))
 xlabel('t(s)');
 ylabel('Rotor Speed');
 
-% current
+% Electrical Torque Te
 subplot(num_plots, 1, 5)
 plot(t,y(:,9))
 xlabel('t(s)');
@@ -132,9 +132,18 @@ function [dz y] = G_sys(t,z,VAL)
     
     %At T = 15s change the resistance to 2.7 ohms. This simulates a load
     %pick up event.
-    if t > 15 && t < 25
+    if t > 15 && t < 20
         Rl = 2.7;
     end
+    
+    if t > 20 && t < (20+5/60)
+        Rl = 0;
+    end
+    
+    if t > (20+5/60)
+        Rl = 2.7;
+    end
+   
     
     %Self Inductance (H)
     Lasas = La + Lls;
@@ -195,5 +204,7 @@ function [dz y] = G_sys(t,z,VAL)
     
     %return the 4 flux linkages!
     dz = [dlambda_as; dlambda_bs; dlambda_cs; dlambda_fd; dwr; dtheta];
-    y = [Ias; Ibs; Ics; Vas; Vbs; Vcs; Ifd; wr; Te; Pe];
+    y = [Ias; Ibs; Ics; Vas; Vbs; Vcs; Ifd; wr; Te; Rl];
 end
+
+
