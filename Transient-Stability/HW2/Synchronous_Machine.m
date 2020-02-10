@@ -1,7 +1,7 @@
 %{
 Author: Brandon Johnson
 Date Started: 2/5/2020
-Date Completed: 
+Date Completed: 2/10/2020
 
 This program Models the dynamic response of a Synchronous machince. 
 This is for HW2 of EE 457.
@@ -41,7 +41,6 @@ wr = 120*pi;            % Initial velocity of the rotor (V)
 % Assemble the states vector
 z0 = [Lambda_as; Lambda_bs; Lambda_cs; Lambda_fd; wr; theta];
 
-
 % Simulation horizon
 T = [0 25]; % (s)
 
@@ -49,9 +48,7 @@ T = [0 25]; % (s)
 options = odeset('RelTol',1e-4);
 [t z] = ode15s(@(t,z)G_sys(t,z,VAL),T,z0,options);
 
-
 %post-process data
-% postprocess data
 [~,y0] = G_sys(0,z0,VAL);       % Calculate one output at t=0
 y = zeros(numel(t),numel(y0));  % preassign memory to save outputs
 for i=1:numel(t)
@@ -59,11 +56,8 @@ for i=1:numel(t)
     y(i,:) = yi';
 end
 
-
-
 %plot the results
 num_plots = 6; % The number of plots
-
 
 % voltage
 subplot(num_plots, 1, 1)
@@ -78,7 +72,7 @@ plot(t,y(:,1), t,y(:,2),t,y(:,3))
 xlabel('t(s)');
 ylabel('I_{abc} (A)');
 
-% current
+% Field current
 subplot(num_plots, 1, 3)
 plot(t,y(:,7))
 xlabel('t(s)');
@@ -96,13 +90,11 @@ plot(t,y(:,9))
 xlabel('t(s)');
 ylabel('Te');
 
-
-%current
+% Power (Watts)
 subplot(num_plots, 1, 6)
 plot(t,y(:,10))
 xlabel('t(s)');
 ylabel('Power (Watts)');
-
 
 function [dz y] = G_sys(t,z,VAL)
     % Extract state variables
@@ -113,7 +105,6 @@ function [dz y] = G_sys(t,z,VAL)
     wr = z(5);
     theta = z(6); 
 
-    
     % Extract other vars. 
     D = VAL.D;
     J = VAL.J;
@@ -132,18 +123,14 @@ function [dz y] = G_sys(t,z,VAL)
     
     %At T = 15s change the resistance to 2.7 ohms. This simulates a load
     %pick up event.
-    if t > 15 && t < 20
+    if t > 15 && t < 25
         Rl = 2.7;
     end
     
+    %Simulate a 3-phase fault at machine's terminals that lasts for 5 cycles
     if t > 20 && t < (20+5/60)
         Rl = 0;
     end
-    
-    if t > (20+5/60)
-        Rl = 2.7;
-    end
-   
     
     %Self Inductance (H)
     Lasas = La + Lls;
@@ -164,7 +151,6 @@ function [dz y] = G_sys(t,z,VAL)
                          Lasbs Lbsbs Lbscs Lbsfd;
                          Lascs Lbscs Lcscs Lcsfd;
                          Lasfd Lbsfd Lcsfd Lfdfd;];
-
                      
     %Form flux linkage matrix.
     Linkage = [Lambda_as; Lambda_bs; Lambda_cs; Lambda_fd];
@@ -204,7 +190,5 @@ function [dz y] = G_sys(t,z,VAL)
     
     %return the 4 flux linkages!
     dz = [dlambda_as; dlambda_bs; dlambda_cs; dlambda_fd; dwr; dtheta];
-    y = [Ias; Ibs; Ics; Vas; Vbs; Vcs; Ifd; wr; Te; Rl];
+    y = [Ias; Ibs; Ics; Vas; Vbs; Vcs; Ifd; wr; Te; Pe];
 end
-
-
