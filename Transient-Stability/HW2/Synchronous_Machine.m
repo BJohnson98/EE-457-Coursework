@@ -15,7 +15,7 @@ close all;
 %Inductance (H)
 VAL.La = 0.0023;
 %Leakage Inductance (H)
-VAL.Lls = 0.0024;
+VAL.Lls = 0.0004079;
 
 %Exciter Inductance (H)
 VAL.Lmfd = 0.6197;
@@ -23,24 +23,26 @@ VAL.Lsfd = 0.0378;
 VAL.Llfd = 0.0545;
 
 %Other variables
-VAL.D = 7;  % Damping Coefficient due to friction (N*m*s/rad)
-VAL.J = 0.0658*10^6; % Inertia of the prime mover (Kg*m^2)
-VAL.Rl = 40.8; % Resistance of the load (Ohms)
-VAL.Rfd = 0.1345;
-Val.Rs = 2.43*10^-3;
-VAL.N = 16.4 %turn ratio
+VAL.D = 7;              % Damping Coefficient due to friction (N*m*s/rad)
+VAL.J = 0.0658*10^6;    % Inertia of the prime mover (Kg*m^2)
+VAL.Rl = 40.8;          % Resistance of the load (Ohms)
+VAL.Rfd = 0.1345;       % Resistance of the exciter (Ohms)
+VAL.Rs = 2.43*10^-3;    % Resistance of the Stator
+VAL.N = 16.4;           % Turn ratio
 
 % initial conditions
-Lambda_as = 0;  % Flux Linkage from as
-Lambda_bs = 0;  % Flux Linkage from bs              
-Lambda_cs = 0;  %Flux Linkage from cs                 
-Lambda_fd = 0;  % Flux Linkage from fd              
-theta = 0;      %Initial position of the rotor (Angle)
-wr = 120*pi;    %Initial velocity of the rotor (V)
-z0 = [Lambda_as; Lambda_bs; Lambda_cs; Lambda_fd; theta; wr];
+Lambda_as = 0;          % Flux Linkage from as
+Lambda_bs = 0;          % Flux Linkage from bs              
+Lambda_cs = 0;          % Flux Linkage from cs                 
+Lambda_fd = 0;          % Flux Linkage from fd              
+theta = 0;              % Initial position of the rotor (Angle)
+wr = 120*pi;            % Initial velocity of the rotor (V)
+
+% Assemble the states vector
+z0 = [Lambda_as; Lambda_bs; Lambda_cs; Lambda_fd; wr; theta];
 
 
-% simulation horizon
+% Simulation horizon
 T = [0 25]; % (s)
 
 % solve the ODE
@@ -48,17 +50,31 @@ options = odeset('RelTol',1e-4);
 [t z] = ode15s(@(t,z)G_sys(t,z,VAL),T,z0,options);
 
 
-%plot the results;
+%post-process data
+% postprocess data
+[~,y0] = G_sys(0,z0,VAL);       % Calculate one output at t=0
+y = zeros(numel(t),numel(y0));  % preassign memory to save outputs
+for i=1:numel(t)
+    [~, yi] = G_sys(t(i),z(i,:)',VAL);
+    y(i,:) = yi';
+end
+
+
+
+%plot the results
+num_plots = 5 % The number of plots
+
 
 % voltage
-subplot(2,1,1)
-plot(t,z(:,1))
+subplot(num_plots, 1, 1)
+plot(t,y(:,4),t,y(:,5),t,y(:,6))
 xlabel('t(s)');
-ylabel('Voltage(V)');
+ylabel('v_{abc} (V)');
+ylim([-30000 30000]);
 
 % current
-subplot(5,1,2)
-plot(t,z(:,2))
+subplot(num_plots, 1, 2)
+plot(t,y(:,1), t,y(:,2),t,y(:,3))
 xlabel('t(s)');
 ylabel('Current(A)');
 
@@ -68,8 +84,9 @@ function [dz y] = G_sys(t,z,VAL)
     Lambda_bs = z(2);
     Lambda_cs = z(3); 
     Lambda_fd = z(4); 
-    theta = z(5); 
-    wr = z(6);
+    wr = z(5);
+    theta = z(6); 
+
     
     % Extract other vars. 
     D = VAL.D;
@@ -77,6 +94,7 @@ function [dz y] = G_sys(t,z,VAL)
     Rl = VAL.Rl;
     Rfd = VAL.Rfd;
     Rs = VAL.Rs;
+    N = VAL.N;
     % Extract Inductance (H)
     La = VAL.La;
     % Extract Leakage Inductance (H)
@@ -88,7 +106,7 @@ function [dz y] = G_sys(t,z,VAL)
     
     %At T = 15s change the resistance to 2.7 ohms. This simulates a load
     %pick up event.
-    if t > 15
+    if t > 15 && t < 25
         Rl = 2.7;
     end
     
@@ -123,15 +141,24 @@ function [dz y] = G_sys(t,z,VAL)
     Ics = I(3);
     Ifd = I(4);
     
-    %solve for voltage
-    Vas = -Rl*Ias - Rs*Ias;
-    Vbs = -Rl*Ibs - Rs*Ibs;
-    Vcs = -Rl*Ics - Rs*Ics;
-    Vfd = -Rl*Ifd - Rfd*Ifd;
+    %Iprime
+    Ip_fd = 2/3*N*Ifd;
     
- 
+    %solve for voltage
+    Vas = -Rl*Ias;
+    Vbs = -Rl*Ibs;
+    Vcs = -Rl*Ics;
+    Vfd = 230;
+    
+    %solve for the change in the flux linkage
+    dlambda_as = Vas - Rs*Ias;
+    dlambda_bs = Vbs - Rs*Ibs;
+    dlambda_cs = Vcs - Rs*Ics;
+    dlambda_fd = Vfd - Rfd*Ifd;
+    
     %final differential equations.
-    Te = La*Ifd*((Ias-0.5*Ibs-0.5*Ics)*cos(theta)+(Ias-0.5*Ibs-0.5*Ics)*sin(theta));
+    %need to change Te
+    Te = 3/2*La*Ip_fd*((Ias-0.5*Ibs-0.5*Ics)*cos(theta)+sqrt(3)/2*(Ibs-Ics)*sin(theta));
     Tf = D*wr;
     Tm = -Te+Tf;
     dwr = 1/J*(Tm+Te-Tf); 
@@ -140,8 +167,9 @@ function [dz y] = G_sys(t,z,VAL)
     %Power output of the machine.
     Pe = Vas*Ias+Vbs*Ibs+Vcs*Ics;
     
-    dz = [Te; Tf; Tm; dwr; dtheta; Pe];
-    
+    %return the 4 flux linkages!
+    dz = [dlambda_as; dlambda_bs; dlambda_cs; dlambda_fd; dwr; dtheta];
+    y = [Ias; Ibs; Ics; Vas; Vbs; Vcs; Ifd; Te; Pe];
 end
 
 
