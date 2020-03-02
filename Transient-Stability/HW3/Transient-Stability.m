@@ -16,7 +16,7 @@ and the distance of the fault.
 clear all;
 close all;
 
-part = 0;
+part = 1;
 
 %Table of stability:
 stability = zeros(6,9);
@@ -37,8 +37,8 @@ d = [0.1,0.2,0.3,0.5,0.6,0.7,0.8,0.9, 1.0]; % Percent distance where fault occur
 wr0     = 1.0;                              % initial rotor speed p.u.
 T       = 0:0.001:1+0.15;                   % simulation horizon
 distance = 0;
-for i = 1:1:6
-  for j = 1:1:9
+for i = 1:6
+  for j = 1:9
     E0      = initial_conditions(pe(i),PAR);
     PAR.E   = E0(1);
     del0    = E0(2);                        % Initial relative rotor angle (rad)
@@ -49,11 +49,13 @@ for i = 1:1:6
     
     %TODO, 
     %determine if phase distance exceeds epsilon
-
-    %if the phase distance is less than epsilon, then the system is stable
-    if epsilon > distance
-      stability(i,j) = 1;
-    end 
+    for k=1:numel(t)
+      distance = sqrt((z(i,1)+wr0)^2 + (z(i,2)+ del0)^2);
+      if epsilon < distance
+        stability(i,j) = 1;
+        break;
+      end
+    end
   end
 end 
 
