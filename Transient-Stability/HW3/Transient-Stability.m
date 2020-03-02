@@ -47,10 +47,10 @@ for i = 1:6
     % execute ODE
     [t z] = ode15s(@(t,z)rotor_angle_dyn(t,z,PAR),T,z0);
     
-    %TODO, 
-    %determine if phase distance exceeds epsilon
+    %the loop below loops through all points in the phase plane
+    %and determines determines if the system is stable.
     for k=1:numel(t)
-      distance = sqrt((z(i,1)+wr0)^2 + (z(i,2)+ del0)^2);
+      distance = sqrt((z(k,1)-wr0)^2 + (z(k,2)-del0)^2);
       if epsilon < distance
         stability(i,j) = 1;
         break;
@@ -68,9 +68,7 @@ if part > 0
   xlabel('t (s)'); ylabel('del (rad)');
 
   subplot(2,2,[2 4]); 
-  %plot(z(:,1),z(:,2)); 
   hold on
-
   th = 0:pi/50:2*pi;
   plot(epsilon * cos(th) + wr0, epsilon * sin(th) + del0);
   plot(z(:,1),z(:,2)); 
