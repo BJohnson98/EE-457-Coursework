@@ -65,6 +65,7 @@ vb_plus_time = sqrt(2) * vb_plus_rad * cos(120*pi*t + vb_plus_angle*pi/180);
 vc_plus_time = sqrt(2) * vc_plus_rad * cos(120*pi*t + vc_plus_angle*pi/180);
 
 %plotting positive sequence components
+subplot(4,1,1);
 plot(t,va_plus_time,'b',t,vb_plus_time,'r',t,vc_plus_time,'g');
 title('Positive Sequence Components')
 
@@ -85,6 +86,7 @@ vb_minus_time = sqrt(2) * vb_minus_rad * cos(120*pi*t + vb_minus_angle*pi/180);
 vc_minus_time = sqrt(2) * vc_minus_rad * cos(120*pi*t + vc_minus_angle*pi/180);
 
 %plotting negative sequence components
+subplot(4,1,2);
 plot(t,va_minus_time,'b',t,vb_minus_time,'r',t,vc_minus_time,'g');
 title('Negative Sequence Components')
 
@@ -104,6 +106,7 @@ vb_zero_time = sqrt(2) * vb_zero_rad * cos(120*pi*t + vb_zero_angle*pi/180);
 vc_zero_time = sqrt(2) * vc_zero_rad * cos(120*pi*t + vc_zero_angle*pi/180);
 
 %plotting positive sequence components
+subplot(4,1,3);
 plot(t,va_zero_time,'b',t,vb_zero_time,'r',t,vc_zero_time,'g');
 title('zero Sequence Components')
 
@@ -112,6 +115,7 @@ title('zero Sequence Components')
 v_pos = va_plus_time + va_minus_time + va_zero_time;
 v_neg = vb_plus_time + vb_minus_time + vb_zero_time;
 v_o   = vc_plus_time + vc_minus_time + vc_zero_time;
+subplot(4,1,4);
 plot(t,v_pos,'b',t,v_neg,'r',t,v_o,'g');
 title('Symmetrical Components')
 
