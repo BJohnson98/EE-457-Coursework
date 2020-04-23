@@ -1,7 +1,7 @@
 %{
 Author: Brandon Johnson
 Date Started: 4/20/2020
-Date Completed: 
+Date Completed: 4/23/2020
 
 This program Models the dynamics of a synchronous machine
 and also the turbine speed control system. 
@@ -73,8 +73,8 @@ end
 %% Plot results
 fz = 18; % fontsize
 figure(1); clf;
-Np = 9;
-
+Np = 2;
+figure(1)
 ax1 = subplot(Np,1,1)
 plot(t,y(:,4),t,y(:,5),t,y(:,6))
 ylabel('v_{abc} (V)')
@@ -83,33 +83,36 @@ ax2 = subplot(Np,1,2)
 plot(t,y(:,1),t,y(:,2),t,y(:,3))
 ylabel('i_{abc} (A)')
 
-ax3 = subplot(Np,1,3)
+figure(2)
+ax3 = subplot(Np,1,1)
 plot(t,y(:,7))
 ylabel('i_{fd} (A)')
 
-
-ax4 = subplot(Np,1,4)
+ax4 = subplot(Np,1,2)
 plot(t,y(:,8))
 ylabel('w_r (rad/s)')
 ylim([360 380])
 
-ax5 = subplot(Np,1,5)
+figure(3)
+ax5 = subplot(Np,1,1)
 plot(t,y(:,10))
 ylabel('P_e (W)')
 
-ax6 = subplot(Np,1,6)
+ax6 = subplot(Np,1,2)
 plot(t,y(:,11))
 ylabel('T_e (Nm)')
 
+figure(4)
 ax7 = subplot(Np,1,1)
 plot(t,y(:,12))
 ylabel('Pvu (p.u)')
 
-ax8 = subplot(Np,1,1)
+ax8 = subplot(Np,1,2)
 plot(t,(y(:,8)/(120*pi)))
 ylabel('wru (p.u)')
 
-ax9 = subplot(Np,1,2)
+figure(5)
+ax9 = subplot(1,1,1)
 plot(t, y(:,13))
 hold on 
 plot(t, (-1*y(:,10)/(PAR.Ptb)))
@@ -183,22 +186,16 @@ function [dz y] = M_sys(t,z,PAR)
   ics = i(3);
   ifd = i(4);
 
-  % load resistors
-  %% Problem 2
-  RL = 40.48;
-  if t > 15
-      RL = 2.7;
-  end
 
   %% Problem 3
-  %RL = 40.48;
-  %if t>= 15 && t<20
-  %    RL = 2.70;
-  %elseif t>=20 && t<(20+5/60)
-  %    RL = 0;
-  %else
-  %    RL = 2.70;
-  %end
+  RL = 40.48;
+  if t>= 15 && t<30
+      RL = 2.70;
+  elseif t>=30 && t<(30+5/60)
+      RL = 0;
+  elseif t>(30+5/60)
+      RL = 2.70;
+  end
 
 
    %% source voltages
